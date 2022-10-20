@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{8a3cc64e-1d2f-4341-a037-9ee05374b072}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="lib\stab.cpp" />
+    <ClCompile Include="src\shader.cpp" />
+    <ClCompile Include="src\io\Keyboard.cpp" />
+    <ClCompile Include="src\io\Mouse.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\fragment_core.glsl" />
+    <None Include="assets\vertex_core.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\shader.h" />
+    <ClInclude Include="src\io\Keyboard.h" />
+    <ClInclude Include="src\io\Mouse.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\1.jpg" />
+    <Image Include="assets\123.jpg" />
+    <Image Include="assets\i.jpg" />
+  </ItemGroup>
+</Project>
