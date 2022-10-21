@@ -18,16 +18,13 @@ void process_input(GLFWwindow* window);
 
 float mix_val = 0.5f;
 glm::mat4 transform = glm::mat4(1.0f);
+glm::mat4 mouse_transform = glm::mat4(1.0f);
+
+float theta = 45.0f;
+float x, y, z;
+unsigned int WIDTH = 800, HEIGHT = 600;
 
 int main() {
-	//// glm test
-	//glm::vec4 vec(1.0f, 1.0f, 1.0f, 1.0f);
-	//glm::mat4 trans = glm::mat4(1.0f);
-	//trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));							// Перевод -- translate
-	//trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));			// Вращение -- rotate
-	//trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));									// масштаб -- scale
-	//vec = trans * vec;
-	//std::cout << vec.x << ' ' <<  vec.y << ' ' << vec.z << std::endl;
 
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -39,7 +36,7 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "open Gl", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "open Gl", nullptr, nullptr);
 	if (window == nullptr) {
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
@@ -54,34 +51,68 @@ int main() {
 		return -1;
 	}
 
-	glViewport(0, 0, 800, 600);
+	glViewport(0, 0, WIDTH, HEIGHT);
 	glfwSetFramebufferSizeCallback(window, frame_buffer_size_callback);
 
 	glfwSetKeyCallback(window, keyboard::key_callback);
+
 	glfwSetMouseButtonCallback(window, mouse::mouse_button_callback);
 	glfwSetScrollCallback(window, mouse::mouse_wheel_callback);
+
+	glEnable(GL_DEPTH_TEST);
 
 	const shader shader("assets/vertex_core.glsl", "assets/fragment_core.glsl");
 
 	//vertex array
 	constexpr float vertices[] = {
-		// position				color				texture coordinate
-		-0.5f, -0.5f, 0.0f,		1.0f, 1.0f, 0.5f,	0.0f, 0.0f,
-		-0.5f,  0.5f, 0.0f,		0.5f, 1.0f, 0.75f,	0.0f, 1.0f,
-		 0.5f, -0.5f, 0.0f,		0.6f, 1.0f, 0.2f,	1.0f, 0.0f,
-		 0.5f,  0.5f, 0.0f,		1.0f, 0.2f, 1.0f,	1.0f, 1.0f,
-	};
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
-	const int indices[] = {
-		0, 1, 2, // first triangle
-		3, 1, 2  // second triangle
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
 	// VAO, VBO, EBO	
-	unsigned int VAO, VBO, EBO;
+	unsigned int VAO, VBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+	//glGenBuffers(1, &EBO);
 
 	// bind VAO - связываем
 	glBindVertexArray(VAO);
@@ -90,21 +121,16 @@ int main() {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof vertices, vertices, GL_STATIC_DRAW);
 
-	//set EBO
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof indices, indices, GL_STATIC_DRAW);
-
 
 	// Set attributes pointer
 	// position
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), static_cast<void*>(nullptr));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), static_cast<void*>(nullptr));
 	glEnableVertexAttribArray(0);
 	// color
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+
 	// texture coordinates
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	// TEXTURE==============
 
@@ -145,19 +171,15 @@ int main() {
 		std::cout << "Failed load texture 2" << std::endl;
 
 	stbi_image_free(data);
-	// shader.set_float("mixVal", mix_val);
 
 	shader.activate();
+
 	shader.set_int("texture1", 0);
 	shader.set_int("texture2", 1);
 
-
-	// SHADER===============
-	// Transform
-	//const auto trans = glm::mat4(1.0f);
-	//trans = glm::rotate(trans, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	//shader.activate();
-	//shader.set_mat4("transform", trans);
+	x = 0.0f;
+	y = 0.0f;
+	z = 3.0f;
 
 	while (!glfwWindowShouldClose(window)) {
 		// input
@@ -165,46 +187,58 @@ int main() {
 
 		// render
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
-		// draw shader
 		glBindVertexArray(VAO);
 		shader.activate();
 
+		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 view = glm::mat4(1.0f);
+		glm::mat4 projection = glm::mat4(1.0f);
 
+		model = rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(-40.0f), glm::vec3(0.5f));
+		view = translate(view, glm::vec3(-x, -y, -z));
+		projection = glm::perspective(glm::radians(45.0f), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 100.0f);
+
+		// draw shader
+		shader.activate();
+
+		shader.set_mat4("model", model);
+		shader.set_mat4("view", view);
+		shader.set_mat4("projection", projection);
 		shader.set_float("mixVal", mix_val);
 		shader.set_mat4("transform", transform);
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+		shader.set_mat4("mouse_transform", mouse_transform);
+
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
-
-		//trans = rotate(trans, glm::radians(static_cast<float>(glfwGetTime()) / 100.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-
-		//shader.set_mat4("transform", trans);
 
 		// Send new frame to window
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteVertexArrays(1, &VBO);
 	glfwTerminate();
 	return 0;
 }
 
-void frame_buffer_size_callback(GLFWwindow* window, int width, int height) {
+void frame_buffer_size_callback(GLFWwindow* window, const int width, const int height) {
 	glViewport(0, 0, width, height);
+	WIDTH = width;
+	HEIGHT = height;
 }
 
 void process_input(GLFWwindow* window) {
 	if (keyboard::key(GLFW_KEY_ESCAPE))
 		glfwSetWindowShouldClose(window, true);
 
-	// change mix value
 	if (keyboard::key_went_up(GLFW_KEY_UP)) {
 		mix_val += .05f;
 		if (mix_val > 1) {
@@ -220,18 +254,32 @@ void process_input(GLFWwindow* window) {
 	}
 
 	if (keyboard::key(GLFW_KEY_W)) {
-		transform = glm::translate(transform, glm::vec3(0.0f, 0.1f, 0.0f));
+		transform = glm::translate(transform, glm::vec3(0.0f, -0.01f, 0.0f));
 	}
 
 	if (keyboard::key(GLFW_KEY_S)) {
-		transform = glm::translate(transform, glm::vec3(0.0f, -0.1f, 0.0f));
+		transform = glm::translate(transform, glm::vec3(0.0f, 0.01f, 0.0f));
 	}
 
 	if (keyboard::key(GLFW_KEY_D)) {
-		transform = glm::translate(transform, glm::vec3(0.1f, 0.0f, 0.0f));
+		transform = glm::translate(transform, glm::vec3(-0.01f, 0.0f, 0.0f));
 	}
 
 	if (keyboard::key(GLFW_KEY_A)) {
-		transform = glm::translate(transform, glm::vec3(-0.1f, 0.0f, 0.0f));
+		transform = translate(transform, glm::vec3(0.01f, 0.0f, 0.0f));
+	}
+
+	// all bed
+	if (mouse::button(GLFW_MOUSE_BUTTON_LEFT)) {
+		float _x = mouse::get_mouse_x();
+		float _y = mouse::get_mouse_y();
+
+		std::cout << mouse::get_mouse_x() << "--" << mouse::get_mouse_y() << " ";
+
+		mouse_transform = translate(mouse_transform, glm::vec3(0.01f, 0.0f, 0.0f));
+	}
+
+	if (mouse::button(GLFW_MOUSE_BUTTON_RIGHT)) {
+		mouse_transform = glm::translate(mouse_transform, glm::vec3(-0.01f, 0.0f, 0.0f));
 	}
 }
